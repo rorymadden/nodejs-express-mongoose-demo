@@ -131,7 +131,21 @@ function bootApplication(app, config, passport) {
       res.status(err.status || 500);
       res.render('500', { error: err });
     });
+  });
+  
+  app.configure('development', function() {
+    app.use(express.errorHandler({
+      dumpExceptions: true,
+      showStack: true
+    }));
+    app.locals.pretty = true;
+    app.enable('verbose errors');
+  });
 
-  app.set('showStackError', false)
+  app.configure('production', function() {
+    app.use(express.errorHandler());
+    app.disable('verbose errors');
+    app.set('showStackError', false);
+  });
 
 }
