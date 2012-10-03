@@ -4,10 +4,3 @@ block main
   h1 Oops something went wrong
   br
   span 404
-
-block content
-  #error-message-box
-    #error-stack-trace
-      - if(showStack)
-        pre
-          code!= error.stack
