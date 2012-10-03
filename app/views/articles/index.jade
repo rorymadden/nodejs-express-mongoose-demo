@@ -9,7 +9,7 @@ block content
       a.title(href='/articles/'+article._id, title=article.title) #{article.title}
       p=article.body
       .author
-        span= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
+        //- span= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
         span &nbsp;| Author :&nbsp;
         a(href="/users/"+article.user._id)=article.user.name
         | &nbsp;|&nbsp;
@@ -21,7 +21,7 @@ block content
                 i.icon-tags
                 |  #{tag}
 
-  if (pages > 1)
-    .pagination
-      ul
-        != createPagination(pages, page)
+  //- if (pages > 1)
+  //-   .pagination
+  //-     ul
+  //-       != createPagination(pages, page)
