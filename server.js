@@ -5,7 +5,9 @@ var express = require('express')
   , fs = require('fs')
   , passport = require('passport')
 
-require('express-namespace')
+// Not being used and not considered best practice
+//https://github.com/visionmedia/express-resource/pull/66
+//require('express-namespace')
 
 // Load configurations
 var env = process.env.NODE_ENV || 'development'

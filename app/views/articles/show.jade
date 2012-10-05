@@ -7,7 +7,7 @@ block content
   p=article.body
   p.author
     span Author :&nbsp;
-    a(href="/users/"+article.user._id)=article.user.name
+    a(href="/users/"+article.user.username)=article.user.name
   //- .date= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
   if (article.tags)
     .tags

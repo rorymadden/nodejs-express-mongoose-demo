@@ -4,7 +4,7 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , crypto = require('crypto')
   , _ = require('underscore')
-  , authTypes = ['github', 'twitter', 'facebook', 'google']
+  , authTypes = ['facebook', 'google']
 
 var UserSchema = new Schema({
     name: String
@@ -31,6 +31,20 @@ UserSchema
 // validations
 var validatePresenceOf = function (value) {
   return value && value.length
+}
+
+exports.uniqueUsername = function (username, counter){
+  counter = counter || 1;
+  User.findOne({'username': username }), function (err, user){
+    if (err) { return done(err) }
+    if(!user){
+        return username;
+    }
+    else {
+      //make unique username - add number to end
+      return uniqueUsername(username+counter, counter+1);
+    }
+  }
 }
 
 // the below 4 validations only apply if you are signing up traditionally

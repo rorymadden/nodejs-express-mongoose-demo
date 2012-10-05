@@ -47,7 +47,7 @@ module.exports = function (app, passport, auth) {
   app.param('id', function(req, res, next, id){
     Article
       .findOne({ _id : id })
-      .populate('user', 'name')
+      .populate('user', 'name username')
       .populate('comments')
       .exec(function (err, article) {
         if (err) return next(err)

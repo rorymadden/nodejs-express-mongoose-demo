@@ -7,7 +7,7 @@ exports.index = function (req, res) {
 
   Article
     .find({ tags: req.param('tag') })
-    .populate('user', 'name')
+    .populate('user', 'name username')
     .sort({'createdAt': -1}) // sort by date
     .limit(perPage)
     .skip(perPage * page)

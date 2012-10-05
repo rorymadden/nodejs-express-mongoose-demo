@@ -26,6 +26,7 @@ function bootApplication(app, config, passport) {
 
   app.configure(function () {
     // dynamic helpers
+
     app.use(function (req, res, next) {
       res.locals.appName = 'Nodejs Express Mongoose Demo'
       res.locals.title = 'Nodejs Express Mongoose Demo'
@@ -63,14 +64,14 @@ function bootApplication(app, config, passport) {
     })
 
     // cookieParser should be above session
-    app.use(express.cookieParser())
+    app.use(express.cookieParser('noobjs'))
 
     // bodyParser should be above methodOverride
     app.use(express.bodyParser())
     app.use(express.methodOverride())
 
     app.use(express.session({
-      secret: 'noobjs',
+      //secret: 'noobjs',
       store: new mongoStore({
         url: config.db,
         collection : 'sessions'

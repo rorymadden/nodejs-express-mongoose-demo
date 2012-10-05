@@ -7,6 +7,62 @@ var mongoose = require('mongoose')
   , GoogleStrategy = require('passport-google-oauth').Strategy
   , User = mongoose.model('User')
 
+/**
+ * check whether a user from a provider exists based on id 
+ * @param  {string} provider [facebook, twitter]
+ * @param  {object} profile  [username, email, etc.]   
+ * @param  {function} done        
+ * @return User object if matched or handover to userExistsByEmail
+ */
+function userExistsByProvider(provider, profile, done){
+  var providerId = {};
+  providerId[provider+".id"] = profile.id;
+
+  User.findOne(providerId, function (err, user) {
+    if (err) { return done(err) }
+    if (!user) { 
+      return userExistsByEmail(provider, profile, done);
+    }
+    else {
+      return done(err, user);
+    }
+  })
+} 
+
+/**
+ * check whether a user from a provider exists based on email 
+ * @param  {string} provider [facebook, twitter]
+ * @param  {object} profile  [username, email, etc.] 
+ * @param  {function} done      
+ * @return User object in done method
+ */
+function userExistsByEmail(provider, profile, done){
+  User.findOne({'email': profile.emails[0].value }, function (err, user) {
+    if (err) { return done(err) }
+    if (!user) { 
+      //create a new user
+      user = new User({
+          name: profile.displayName
+        , email: profile.emails[0].value
+        , username: User.uniqueUsername(profile.username)
+        //is this necessary?
+        , provider: provider
+      });
+      user[provider] = profile._json;
+    }
+    else {
+      //update user
+      user.name = profile.displayName;
+      user[provider] = profile._json;
+    }
+    //save changes
+    user.save(function (err, user) {
+      if (err) console.log(err)
+      return done(err, user)
+    })
+  })
+}
+
 
 exports.boot = function (passport, config) {
   // require('./initializer')
@@ -41,33 +97,34 @@ exports.boot = function (passport, config) {
     }
   ))
 
-  // use twitter strategy
-  passport.use(new TwitterStrategy({
-        consumerKey: config.twitter.clientID
-      , consumerSecret: config.twitter.clientSecret
-      , callbackURL: config.twitter.callbackURL
-    },
-    function(token, tokenSecret, profile, done) {
-      User.findOne({ 'twitter.id': profile.id }, function (err, user) {
-        if (err) { return done(err) }
-        if (!user) {
-          user = new User({
-              name: profile.displayName
-            , username: profile.username
-            , provider: 'twitter'
-            , twitter: profile._json
-          })
-          user.save(function (err, user) {
-            if (err) console.log(err)
-            return done(err, user)
-          })
-        }
-        else {
-          return done(err, user)
-        }
-      })
-    }
-  ))
+  // // use twitter strategy
+  // // does not send email - not valid for our unique username approach
+  // passport.use(new TwitterStrategy({
+  //       consumerKey: config.twitter.clientID
+  //     , consumerSecret: config.twitter.clientSecret
+  //     , callbackURL: config.twitter.callbackURL
+  //   },
+  //   function(token, tokenSecret, profile, done) {
+  //     User.findOne({ 'twitter.id': profile.id }, function (err, user) {
+  //       if (err) { return done(err) }
+  //       if (!user) {
+  //         user = new User({
+  //             name: profile.displayName
+  //           , username: profile.username
+  //           , provider: 'twitter'
+  //           , twitter: profile._json
+  //         })
+  //         user.save(function (err, user) {
+  //           if (err) console.log(err)
+  //           return done(err, user)
+  //         })
+  //       }
+  //       else {
+  //         return done(err, user)
+  //       }
+  //     })
+  //   }
+  // ))
 
   // use facebook strategy
   passport.use(new FacebookStrategy({
@@ -76,50 +133,68 @@ exports.boot = function (passport, config) {
       , callbackURL: config.facebook.callbackURL
     },
     function(accessToken, refreshToken, profile, done) {
-      User.findOne({ 'facebook.id': profile.id }, function (err, user) {
-        if (err) { return done(err) }
-        if (!user) {
-          user = new User({
-              name: profile.displayName
-            , email: profile.emails[0].value
-            , username: profile.username
-            , provider: 'facebook'
-            , facebook: profile._json
-          })
-          user.save(function (err, user) {
-            if (err) console.log(err)
-            return done(err, user)
-          })
-        }
-        else {
-          return done(err, user)
-        }
-      })
+      // User.findOne({ 'facebook.id': profile.id }, function (err, user) {
+      //   if (err) { return done(err) }
+      //   if (!user) {
+      //     User.findOne({'email': profile.emails[0].value }, function (err, user) {
+      //       if (err) {return done(err) }
+      //       if(!user){
+      //         user = new User({
+      //             name: profile.displayName
+      //           , email: profile.emails[0].value
+      //           , username: profile.username
+      //           , provider: 'facebook'
+      //           , facebook: profile._json
+      //         })
+      //         user.save(function (err, user) {
+      //           if (err) console.log(err)
+      //           return done(err, user)
+      //         })
+      //       }
+      //       else {
+      //         //TODO: update teh user with the facebook details - check the format of only having one provider?
+      //         User.facebook
+      //       }
+      //     })
+          
+          
+      //   }
+      //   else {
+      //     return done(err, user)
+      //   }
+      // })
+
+      // validate user exists by provider id, email or create new
+      userExistsByProvider('facebook', profile, done);
     }
   ))
 
-  // use github strategy
-  passport.use(new GitHubStrategy({
-      clientID: config.github.clientID,
-      clientSecret: config.github.clientSecret,
-      callbackURL: config.github.callbackURL
-    },
-    function(accessToken, refreshToken, profile, done) {
-      User.findOne({ 'github.id': profile.id }, function (err, user) {
-        if (!user) {
-          user = new User({
-              name: profile.displayName
-            , email: profile.emails[0].value
-            , username: profile.username
-            , provider: 'github'
-            , github: profile._json
-          })
-          user.save()
-        }
-        return done(err, user)
-      })
-    }
-  ))
+  // github not relevant for most websites
+  // // use github strategy
+  // passport.use(new GitHubStrategy({
+  //     clientID: config.github.clientID,
+  //     clientSecret: config.github.clientSecret,
+  //     callbackURL: config.github.callbackURL
+  //   },
+  //   function(accessToken, refreshToken, profile, done) {
+  //     // User.findOne({ 'github.id': profile.id }, function (err, user) {
+  //     //   if (!user) {
+  //     //     user = new User({
+  //     //         name: profile.displayName
+  //     //       , email: profile.emails[0].value
+  //     //       , username: profile.username
+  //     //       , provider: 'github'
+  //     //       , github: profile._json
+  //     //     })
+  //     //     user.save()
+  //     //   }
+  //     //   return done(err, user)
+  //     // })
+
+  //     // validate user exists by provider id, email or create new
+  //     userExistsByProvider('github', profile, done);
+  //   }
+  // ))
 
   // use google strategy
   passport.use(new GoogleStrategy({
@@ -128,19 +203,22 @@ exports.boot = function (passport, config) {
       callbackURL: config.google.callbackURL
     },
     function(accessToken, refreshToken, profile, done) {
-      User.findOne({ 'google.id': profile.id }, function (err, user) {
-        if (!user) {
-          user = new User({
-              name: profile.displayName
-            , email: profile.emails[0].value
-            , username: profile.username
-            , provider: 'google'
-            , google: profile._json
-          })
-          user.save()
-        }
-        return done(err, user)
-      })
+    //   User.findOne({ 'google.id': profile.id }, function (err, user) {
+    //     if (!user) {
+    //       user = new User({
+    //           name: profile.displayName
+    //         , email: profile.emails[0].value
+    //         , username: profile.username
+    //         , provider: 'google'
+    //         , google: profile._json
+    //       })
+    //       user.save()
+    //     }
+    //     return done(err, user)
+    //   })
+
+      // validate user exists by provider id, email or create new
+      userExistsByProvider('google', profile, done);
     }
   ));
 }

@@ -11,7 +11,7 @@ block content
       .author
         //- span= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
         span &nbsp;| Author :&nbsp;
-        a(href="/users/"+article.user._id)=article.user.name
+        a(href="/users/"+article.user.username)=article.user.name
         | &nbsp;|&nbsp;
         if (article.tags)
           span.tags

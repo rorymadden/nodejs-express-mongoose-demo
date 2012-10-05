@@ -35,6 +35,7 @@ exports.session = function (req, res) {
 
 // signup
 exports.create = function (req, res) {
+
   var user = new User(req.body)
   user.provider = 'local'
   user.save(function (err) {
