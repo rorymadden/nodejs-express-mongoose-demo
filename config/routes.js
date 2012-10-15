@@ -12,7 +12,7 @@ module.exports = function (app, passport, auth) {
   app.get('/signup', users.signup)
   app.get('/logout', users.logout)
   app.post('/users', users.create)
-  app.post('/users/session', passport.authenticate('local', {failureRedirect: '/login'}), users.session)
+  app.post('/users/session', passport.authenticate('local', {failureRedirect: '/login', failureFlash: true}), users.session)
   app.get('/users/:username', users.show)
   app.get('/auth/facebook', passport.authenticate('facebook', { scope: [ 'email', 'user_about_me'], failureRedirect: '/login' }), users.signin)
   app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), users.authCallback)
@@ -57,7 +57,7 @@ module.exports = function (app, passport, auth) {
         var populateComments = function (comment, cb) {
           User
             .findOne({ _id: comment._user })
-            .select('name')
+            .select('name username')
             .exec(function (err, user) {
               if (err) return next(err)
               comment.user = user

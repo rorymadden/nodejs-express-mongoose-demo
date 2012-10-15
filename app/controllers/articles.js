@@ -84,23 +84,25 @@ exports.destroy = function(req, res){
 
 // Listing of Articles
 exports.index = function(req, res){
-  var perPage = 5
-    , page = req.param('page') > 0 ? req.param('page') : 0
+  //TODO: investigate better way of implementing pager - utils folder?
+  // var perPage = 5
+  //   , page = req.param('page') > 0 ? req.param('page') : 0
 
   Article
     .find({})
     .populate('user', 'name username')
     .sort({'createdAt': -1}) // sort by date
-    .limit(perPage)
-    .skip(perPage * page)
+    //TODO: investigate better way of implementing pager - utils folder?
+    // .limit(perPage)
+    // .skip(perPage * page)
     .exec(function(err, articles) {
       if (err) return res.render('500')
       Article.count().exec(function (err, count) {
         res.render('articles/index', {
             title: 'List of Articles'
           , articles: articles
-          , page: page
-          , pages: count / perPage
+          // , page: page
+          // , pages: count / perPage
         })
       })
     })

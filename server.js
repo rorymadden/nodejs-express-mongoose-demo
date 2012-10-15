@@ -15,9 +15,11 @@ var env = process.env.NODE_ENV || 'development'
   , auth = require('./authorization')
 
 // Bootstrap db connection
-var mongoose = require('mongoose')
-  , Schema = mongoose.Schema
-mongoose.connect(config.db)
+require('mongoose').connect(config.db);
+// original db connection code
+// var mongoose = require('mongoose')
+//   , Schema = mongoose.Schema
+// mongoose.connect(config.db)
 
 // Bootstrap models
 var models_path = __dirname + '/app/models'

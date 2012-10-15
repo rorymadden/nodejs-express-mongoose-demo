@@ -21,5 +21,11 @@ block content
           ul
             each error in errors
               li= error.type
+    .span6
+      if (message !== 'undefined')
+        .fade.in.alert.alert-block.alert-error
+          a.close(data-dismiss="alert", href="javascript:void(0)") x
+          ul
+            li= message
 
       block auth

@@ -5,6 +5,7 @@
 
 var express = require('express')
   , mongoStore = require('connect-mongodb')
+  , flash = require('connect-flash')
 
 exports.boot = function(app, config, passport){
   bootApplication(app, config, passport)
@@ -25,13 +26,39 @@ function bootApplication(app, config, passport) {
   app.set('view engine', 'jade')
 
   app.configure(function () {
-    // dynamic helpers
+    // cookieParser should be above session
+    app.use(express.cookieParser('noobjs'))
 
+    // bodyParser should be above methodOverride
+    app.use(express.bodyParser())
+    app.use(express.methodOverride())
+
+    app.use(express.session({
+      //secret: 'noobjs',
+      store: new mongoStore({
+        url: config.db,
+        collection : 'sessions'
+      })
+    }))
+
+    app.use(passport.initialize())
+    app.use(passport.session())
+
+    app.use(express.favicon())
+
+    //use flash messages
+    app.use(flash());
+
+    // dynamic helpers
     app.use(function (req, res, next) {
       res.locals.appName = 'Nodejs Express Mongoose Demo'
       res.locals.title = 'Nodejs Express Mongoose Demo'
       res.locals.showStack = app.showStackError
       res.locals.req = req
+
+      //link flash messages to locals
+      res.locals.flash = req.session.flash;
+
       // res.locals.formatDate = function (date) {
       //   var monthNames = [ "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec" ]
       //   return monthNames[date.getMonth()]+' '+date.getDate()+', '+date.getFullYear()
@@ -63,25 +90,6 @@ function bootApplication(app, config, passport) {
       next()
     })
 
-    // cookieParser should be above session
-    app.use(express.cookieParser('noobjs'))
-
-    // bodyParser should be above methodOverride
-    app.use(express.bodyParser())
-    app.use(express.methodOverride())
-
-    app.use(express.session({
-      //secret: 'noobjs',
-      store: new mongoStore({
-        url: config.db,
-        collection : 'sessions'
-      })
-    }))
-
-    app.use(passport.initialize())
-    app.use(passport.session())
-
-    app.use(express.favicon())
 
     // routes should be at the last
     app.use(app.router)
